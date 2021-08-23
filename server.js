@@ -112,6 +112,14 @@ mongoose.connect('mongodb://127.0.0.1:27017/books', {
     }
   });
 
+  app.delete('/books/:id', async (req, res) => {
+    let bookId = req.params.id;
+    if (email === req.query.email){
+    await BookModel.findByIdAndDelete(bookId, );
+    res.send('deleted book');
+    };
+  });
+
 
 async function addBook(obj) {
   let newBook = new BookModel(obj);
