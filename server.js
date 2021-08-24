@@ -1,6 +1,5 @@
 'use strict';
 
-
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -68,19 +67,19 @@ app.get('/books', (req, res) => {
 
 app.post('/books', (req,res) => {
   try {
-    console.log(req.body)
+    
     let { title, description, status, email} = req.body
 
     let newBook = new BookModel({title, description, status, email})
     newBook.save();
-    res.send(req.body)
+    res.send(newBook);
   } catch {
     res.send('Post Failed')
   }
 })
 
 mongoose.connect('mongodb://127.0.0.1:27017/books', {
-  useNewUrLParser: true,
+  useNewUrlParser: true,
   useUnifiedTopology: true
 })
   .then(async () => {
@@ -114,10 +113,25 @@ mongoose.connect('mongodb://127.0.0.1:27017/books', {
 
   app.delete('/books/:id', async (req, res) => {
     let bookId = req.params.id;
-    if (email === req.query.email){
-    await BookModel.findByIdAndDelete(bookId, );
-    res.send('deleted book');
-    };
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      // the second part is from jet docs
+      jwt.verify(token, getKey, {}, async function (err, user) {
+        if (err) {
+          console.log('error')
+          res.status(500).send('invlaid token');
+        } else {
+          let email = req.query.email;
+          if(email === user.email){
+            await BookModel.findByIdAndDelete(bookId);
+            res.status(200).send('deleted book');
+          }
+        };
+      });
+    }
+    catch (err) {
+      res.status(500).send('dbase error')
+    }
   });
 
 
