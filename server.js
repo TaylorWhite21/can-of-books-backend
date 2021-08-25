@@ -134,6 +134,16 @@ mongoose.connect('mongodb://127.0.0.1:27017/books', {
     }
   });
 
+  app.put('/books/:id', async (req, res) => {
+    try{let myId = req.params.id;
+    let { title, description, status} = req.body
+    const updateBook = await BookModel.findByIdAndUpdate(myId, {title, description, status}, { new: true, overwrite: true});
+    res.status(200).send(updateBook);
+    } catch(error){
+      res.status(500).send('Unable to update book');
+    };
+  });
+
 
 async function addBook(obj) {
   let newBook = new BookModel(obj);
