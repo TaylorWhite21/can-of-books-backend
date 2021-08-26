@@ -33,8 +33,6 @@ function getKey(header, callback) {
 
 app.get('/clear', clear);
 
-// app.get('/seed', seed);
-
 app.get('/books', (req, res) => {
   try {
     const token = req.headers.authorization.split(' ')[1];
@@ -65,12 +63,12 @@ app.get('/books', (req, res) => {
 });
 
 
-app.post('/books', (req,res) => {
+app.post('/books', (req, res) => {
   try {
-    
-    let { title, description, status, email} = req.body
 
-    let newBook = new BookModel({title, description, status, email})
+    let { title, description, status, email } = req.body
+
+    let newBook = new BookModel({ title, description, status, email })
     newBook.save();
     res.send(newBook);
   } catch {
@@ -111,29 +109,39 @@ mongoose.connect('mongodb://127.0.0.1:27017/books', {
     }
   });
 
-  app.delete('/books/:id', async (req, res) => {
-    let bookId = req.params.id;
-    try {
-      const token = req.headers.authorization.split(' ')[1];
-      // the second part is from jet docs
-      jwt.verify(token, getKey, {}, async function (err, user) {
-        if (err) {
-          console.log('error')
-          res.status(500).send('invlaid token');
-        } else {
-          let email = req.query.email;
-          if(email === user.email){
-            await BookModel.findByIdAndDelete(bookId);
-            res.status(200).send('deleted book');
-          }
-        };
-      });
-    }
-    catch (err) {
-      res.status(500).send('dbase error')
-    }
-  });
+app.delete('/books/:id', async (req, res) => {
+  let bookId = req.params.id;
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    // the second part is from jet docs
+    jwt.verify(token, getKey, {}, async function (err, user) {
+      if (err) {
+        console.log('error')
+        res.status(500).send('invlaid token');
+      } else {
+        let email = req.query.email;
+        if (email === user.email) {
+          await BookModel.findByIdAndDelete(bookId);
+          res.status(200).send('deleted book');
+        }
+      };
+    });
+  }
+  catch (err) {
+    res.status(500).send('dbase error')
+  }
+});
 
+app.put('/books/:id', async (req, res) => {
+  try {
+    let myId = req.params.id;
+    let { title, description, status } = req.body
+    const updateBook = await BookModel.findByIdAndUpdate(myId, { title, description, status }, { new: true, overwrite: true });
+    res.status(200).send(updateBook);
+  } catch (error) {
+    res.status(500).send('Unable to update book');
+  };
+});
 
 async function addBook(obj) {
   let newBook = new BookModel(obj);
